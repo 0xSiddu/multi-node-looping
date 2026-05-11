@@ -1,103 +1,107 @@
-from langgraph.graph import StateGraph, END
-from typing import TypedDict
+# ================================================
+# LangGraph Looping Example (Single File)
+# Based on Looping.ipynb from the course
+# ================================================
+
+from typing import TypedDict, Annotated
+import operator
 import random
+from langgraph.graph import StateGraph, END
 
-# Define the state structure
+# ============================
+# 1. Define the State
+# ============================
 class AgentState(TypedDict):
-    message: str
-    loop_count: int
-    max_loops: int
+    name: str
+    number: Annotated[list[int], operator.add]   # Allows automatic appending of lists
+    counter: int
 
-# Define the nodes
+
+# ============================
+# 2. Define the Nodes
+# ============================
+
 def greeting_node(state: AgentState) -> AgentState:
-    """Greeting node that initializes the conversation"""
-    print("Greeting Node: Hello! Starting the random loop process...")
-    state['message'] = "Hello from Greeting Node"
-    state['loop_count'] = 0
+    """Greeting Node - Runs only once"""
+    print("=== Greeting Node Executed ===")
+    state["name"] = f"Hi there, {state['name']}!"
+    state["counter"] = 0                    # Reset counter
     return state
+
 
 def random_node(state: AgentState) -> AgentState:
-    """Random node that processes and increments loop count"""
-    state['loop_count'] += 1
-    print(f"Random Node: Loop iteration {state['loop_count']}/{state['max_loops']}")
-    state['message'] = f"Processing random operation - iteration {state['loop_count']}"
+    """Random Node - This node will loop 5 times"""
+    random_num = random.randint(0, 10)
+    state["number"].append(random_num)      # Add random number to list
+    state["counter"] += 1                   # Increment counter
+    
+    print(f"Random Node: Generated number = {random_num} | Counter = {state['counter']}/5")
     return state
 
-# Conditional function to decide whether to loop or end
+
+# ============================
+# 3. Conditional Function (Decision Maker)
+# ============================
+
 def should_continue(state: AgentState) -> str:
-    """
-    Determines whether to loop back to random_node or end
-    Returns 'loop' to continue, 'end' to finish
-    """
-    if state['loop_count'] < state['max_loops']:
-        print(f"Decision: Continue looping ({state['loop_count']}/{state['max_loops']})")
+    """Decides whether to continue looping or end"""
+    if state["counter"] < 5:
+        print(f"Decision: Continue looping... (Current count: {state['counter']})\n")
         return "loop"
     else:
-        print(f"Decision: Max loops reached ({state['loop_count']}/{state['max_loops']}), ending...")
-        return "end"
+        print("Decision: Max loops reached. Ending the graph.\n")
+        return "exit"
 
-# Build the graph
+
+# ============================
+# 4. Build the Graph
+# ============================
+
 workflow = StateGraph(AgentState)
 
 # Add nodes
-workflow.add_node("greeting_node", greeting_node)
-workflow.add_node("random_node", random_node)
+workflow.add_node("greeting", greeting_node)
+workflow.add_node("random", random_node)
 
 # Set entry point
-workflow.set_entry_point("greeting_node")
+workflow.set_entry_point("greeting")
 
-# Add edge from greeting to random
-workflow.add_edge("greeting_node", "random_node")
+# Fixed edge: Greeting → Random
+workflow.add_edge("greeting", "random")
 
-# Add conditional edges from random_node
+# Conditional edges from random node
 workflow.add_conditional_edges(
-    "random_node",
+    "random",
     should_continue,
     {
-        "loop": "random_node",  # Loop back to itself
-        "end": END              # Go to END
+        "loop": "random",   # Loop back to random node
+        "exit": END         # End the workflow
     }
 )
 
 # Compile the graph
 app = workflow.compile()
 
-# Test the graph
+
+# ============================
+# 5. Run the Graph
+# ============================
+
 if __name__ == "__main__":
-    # Example 1: Loop 3 times
-    print("=" * 60)
-    print("Example 1: Running with max_loops=3")
-    print("=" * 60)
+    print("🚀 Starting LangGraph Looping Example\n")
     
-    initial_state = AgentState(
-        message="",
-        loop_count=0,
-        max_loops=3
-    )
+    initial_state = {
+        "name": "Vaibhav",
+        "number": [],           # Empty list to collect random numbers
+        "counter": 0
+    }
     
     result = app.invoke(initial_state)
     
-    print("=" * 60)
-    print("Final Result:")
-    print(f"Total loops executed: {result['loop_count']}")
-    print(f"Final message: {result['message']}")
-    print("=" * 60)
-    
-    # Example 2: Loop 5 times
-    print("\n" + "=" * 60)
-    print("Example 2: Running with max_loops=5")
-    print("=" * 60)
-    
-    initial_state2 = AgentState(
-        message="",
-        loop_count=0,
-        max_loops=5
-    )
-    
-    result2 = app.invoke(initial_state2)
-    
-    print("=" * 60)
-    print("Final Result:")
-    print(f"Total loops executed: {result2['loop_count']}")
-    print(f"Final message: {result2['message']}")
-    print("=" * 60)
+    print("=" * 50)
+    print("✅ FINAL RESULT")
+    print("=" * 50)
+    print(f"Name    : {result['name']}")
+    print(f"Numbers : {result['number']}")
+    print(f"Counter : {result['counter']}")
+    print("=" * 50)

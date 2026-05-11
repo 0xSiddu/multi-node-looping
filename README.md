@@ -18,115 +18,43 @@ START → Greeting Node → Random Node ⟲ (loop back to itself) → END
 - **greeting_node**: Entry node that initializes the conversation and sets up loop counter
 - **random_node**: Processing node that executes repeatedly based on loop condition
 
-## Conditional Logic
+# LangGraph Looping Example
 
-The `should_continue()` function determines routing:
-- **Returns "loop"**: Routes back to `random_node` (continues looping)
-- **Returns "end"**: Routes to `END` (exits loop)
+A simple demonstration of **looping in LangGraph** using a conditional edge. This project shows how to build a graph that runs a node multiple times (5 loops) before ending.
 
-### Loop Condition
-```python
-if loop_count < max_loops:
-    return "loop"  # Continue
-else:
-    return "end"   # Stop
-```
+This example is based on the **Looping.ipynb** notebook from the LangGraph Course.
 
-## Installation
+---
 
-```bash
+## 📌 Overview
+
+This project demonstrates:
+- How to define a shared `AgentState`
+- Creating nodes (Greeting + Random)
+- Using **conditional edges** to create loops
+- Using `Annotated` + `operator.add` for automatic list accumulation
+- Building and compiling a LangGraph workflow
+
+---
+
+## ✨ Features
+
+- Runs `random_node` exactly **5 times**
+- Collects random numbers (0–10) in a list
+- Clean separation of nodes and decision logic
+- Easy to understand and extend
+
+---
+
+## 🛠️ Technologies Used
+
+- Python 3.8+
+- [LangGraph](https://www.langchain.com/langgraph)
+- TypedDict with Annotations
+
+---
+
+
+
+Install required dependencies:
 pip install langgraph
-```
-
-## Usage
-
-```python
-python graph_v.py
-```
-
-### Example Input
-
-```python
-initial_state = AgentState(
-    message="",
-    loop_count=0,
-    max_loops=3  # Will loop 3 times
-)
-```
-
-### Expected Output
-Greeting Node: Hello! Starting the random loop process...
-Random Node: Loop iteration 1/3
-Decision: Continue looping (1/3)
-Random Node: Loop iteration 2/3
-Decision: Continue looping (2/3)
-Random Node: Loop iteration 3/3
-Decision: Max loops reached (3/3), ending...
-Final Result:
-Total loops executed: 3
-Final message: Processing random operation - iteration 3
-
-## State Structure
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `message` | str | Status message updated during processing |
-| `loop_count` | int | Current iteration count |
-| `max_loops` | int | Maximum number of loops before ending |
-
-## Key Features
-
-- ✅ Self-referencing loop structure
-- ✅ Conditional routing (loop or end)
-- ✅ Configurable loop count
-- ✅ State tracking across iterations
-- ✅ Clean loop exit condition
-
-## Use Cases
-
-This pattern is useful for:
-- Retry logic with maximum attempts
-- Iterative processing until condition met
-- Polling operations
-- Batch processing with iteration limits
-- State machines with repeating states
-
-## Customization
-
-### Change Loop Count
-```python
-initial_state = AgentState(
-    message="",
-    loop_count=0,
-    max_loops=10  # Loop 10 times instead
-)
-```
-
-### Add Random Exit Condition
-```python
-import random
-
-def should_continue(state: AgentState) -> str:
-    # Exit randomly or after max loops
-    if state['loop_count'] < state['max_loops'] and random.random() > 0.3:
-        return "loop"
-    return "end"
-```
-
-### Add More Processing
-```python
-def random_node(state: AgentState) -> AgentState:
-    state['loop_count'] += 1
-    # Add your custom processing here
-    result = perform_some_operation()
-    state['message'] = f"Result: {result}"
-    return state
-```
-
-
-## Notes
-
-- The loop structure uses conditional edges with self-reference
-- Loop counter prevents infinite loops
-- State persists across all loop iterations
-- Clean separation between loop logic and exit logic

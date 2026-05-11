@@ -10,30 +10,8 @@ This graph demonstrates how to create a loop structure in LangGraph where a node
 START → Greeting Node → Random Node ⟲ (loop back to itself) → END
 
 ### Flow Diagram
-┌─────────┐
-│  START  │
-└────┬────┘
-│
-▼
-┌──────────────┐
-│ Greeting Node│
-└──────┬───────┘
-│
-▼
-┌──────────────┐ ◄─────┐
-│ Random Node  │       │
-└──────┬───────┘       │
-│               │
-Condition          │
-│               │
-Loop? ──────────────┘
-│
-End
-│
-▼
-┌──────────┐
-│   END    │
-└──────────┘
+<img width="652" height="548" alt="image" src="https://github.com/user-attachments/assets/21809f1a-9769-4c4e-ab7b-3c56750fec08" />
+
 
 ## Nodes
 

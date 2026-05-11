@@ -1,8 +1,3 @@
-# ================================================
-# LangGraph Looping Example (Single File)
-# Based on Looping.ipynb from the course
-# ================================================
-
 from typing import TypedDict, Annotated
 import operator
 import random
